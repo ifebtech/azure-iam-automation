@@ -13,12 +13,13 @@ Tools and Setup:
 - Azure Account: Logged in successfully using az login
 
 Verification Commands:
-az --version
-az login
+
+`az --version`
+`az login`
 
 ## Explanation:
-az --version confirmed Azure CLI was installed correctly.
-az login opened a browser window for authentication. I then signed in, the CLI displayed my active subscription details, confirming that authentication was successful.
+`az --version` confirmed Azure CLI was installed correctly.
+`az login` opened a browser window for authentication. I then signed in, the CLI displayed my active subscription details, confirming that authentication was successful.
 
 # 1.2 Project Directory Structure
 
@@ -40,6 +41,7 @@ After creating all folders and files, I verified that the structure was correct 
 
 1.4 **Screenshot:**
  Verified Folder Structure
+
 I took a screenshot to show the completed and verified folder structure.
    ![Project Structure Screenshot](screenshots/project-structure.png)
    *This screenshot confirms that all required folders and files were successfully created and properly organized.*
@@ -48,11 +50,11 @@ I took a screenshot to show the completed and verified folder structure.
 
 **Challenge:**
 
-At first, after running az login, the terminal didn't display my subscription info. I wasn't sure if the login was successful.
+At first, after running `az login`, the terminal didn't display my subscription info. I wasn't sure if the login was successful.
 
 How I Resolved It:
 
-I ran az account show to confirm my active subscription and ensure I was logged into the correct Azure tenant.
+I ran `az account show` to confirm my active subscription and ensure I was logged into the correct Azure tenant.
 
 Challenge:
 
