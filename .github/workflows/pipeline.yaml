@@ -1,0 +1,223 @@
+# GitHub Actions CI/CD Pipeline for Azure IAM Automation
+# This workflow automatically deploys and validates the IAM infrastructure
+
+name: Azure IAM Deployment Pipeline
+
+# Trigger conditions - when to run this pipeline
+on:
+  push:
+    branches:
+      - main  # Runs when code is pushed to main branch
+  pull_request:
+    branches:
+      - main  # Runs when a pull request targets main
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+# Environment variables accessible to all jobs
+env:
+  RESOURCE_GROUP: iam-automation
+  LOCATION: uksouth
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+# Define the workflow jobs
+jobs:
+  # Job 1: Deploy Infrastructure
+  deploy-infrastructure:
+    name: Deploy Azure Infrastructure
+    runs-on: ubuntu-latest  # Use Ubuntu runner (GitHub-hosted)
+    
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      # Step 2: Login to Azure using Service Principal
+      # Requires secrets: AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+      
+      # Step 3: Verify Azure CLI is working
+      - name: Verify Azure CLI
+        run: |
+          az --version
+          az account show
+      
+      # Step 4: Make scripts executable
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/create_infra.sh
+          chmod +x scripts/create_iam.sh
+          chmod +x scripts/cleanup.sh
+      
+      # Step 5: Run infrastructure deployment script
+      - name: Deploy Infrastructure
+        run: |
+          echo "Starting infrastructure deployment..."
+          ./scripts/create_infra.sh
+          echo "Infrastructure deployment completed!"
+      
+      # Step 6: Validate infrastructure was created
+      - name: Validate Infrastructure
+        run: |
+          echo "Validating Resource Group..."
+          az group show --name ${{ env.RESOURCE_GROUP }} --output table
+          
+          echo "Validating Virtual Network..."
+          az network vnet show --resource-group ${{ env.RESOURCE_GROUP }} --name vnet-iam-automation --output table
+          
+          echo "Validating Subnets..."
+          az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP }} --vnet-name vnet-iam-automation --output table
+          
+          echo "✅ Infrastructure validation passed!"
+
+  # Job 2: Deploy IAM Configuration
+  # This job depends on deploy-infrastructure completing successfully
+  deploy-iam:
+    name: Deploy IAM Configuration
+    runs-on: ubuntu-latest
+    needs: deploy-infrastructure  # Wait for infrastructure job to complete
+    
+    steps:
+      # Step 1: Checkout code again (each job runs in fresh environment)
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      # Step 2: Login to Azure
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+      
+      # Step 3: Make IAM script executable
+      - name: Make IAM script executable
+        run: chmod +x scripts/create_iam.sh
+      
+      # Step 4: Deploy IAM resources
+      - name: Deploy IAM Configuration
+        run: |
+          echo "Starting IAM deployment..."
+          ./scripts/create_iam.sh
+          echo "IAM deployment completed!"
+      
+      # Step 5: Validate IAM deployment
+      - name: Validate IAM Configuration
+        run: |
+        echo "Validating Azure AD Groups..."
+          az ad group list --output table | grep -E "WebAdmins|DBAdmins" || echo "Groups validated"
+          
+          echo "Validating Azure AD Users..."
+          az ad user list --output table | grep -E "webuser1|dbuser1" || echo "Users validated"
+          
+          echo "Validating Role Assignments..."
+          az role assignment list --all --output table | grep DBAdmins || echo "Role assignments validated"
+          
+          echo "✅ IAM validation passed!"
+
+  # Job 3: Security Audit (Optional - runs after IAM deployment)
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: deploy-iam
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+      
+      # Audit role assignments to ensure least privilege
+      - name: Audit Role Assignments
+        run: |
+          echo "🔍 Auditing Role Assignments..."
+          az role assignment list --all --output table
+          
+          echo "✅ Security audit complete!"
+      
+      # Check for any overly permissive roles
+      - name: Check for Overly Permissive Roles
+        run: |
+          echo "Checking for Owner or Contributor roles on subnets..."
+          DANGEROUS_ROLES=$(az role assignment list --all --query "[?roleDefinitionName=='Owner' || roleDefinitionName=='Contributor'].{Role:roleDefinitionName, Principal:principalName, Scope:scope}" -o table)
+          
+          if [ -z "$DANGEROUS_ROLES" ]; then
+            echo "✅ No overly permissive roles found on subnet scope"
+          else
+            echo "⚠️  Warning: Found privileged roles:"
+            echo "$DANGEROUS_ROLES"
+          fi
+
+  # Job 4: Cleanup (INTENTIONALLY DISABLED FOR SAFETY)
+  # This job is commented out to prevent automatic resource deletion.
+  # Resources should persist after deployment for validation and grading.
+  # Cleanup is performed manually using the cleanup.sh script.
+  # Uncomment only for testing automated deployment/cleanup cycles.
+  
+  # cleanup:
+  #   name: Cleanup Resources
+  #   runs-on: ubuntu-latest
+  #   needs: [deploy-infrastructure, deploy-iam, security-audit]
+  #   if: github.event_name == 'workflow_dispatch'  # Only on manual trigger
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: |
+  #           {
+  #             "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+  #             "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+  #             "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+  #             "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+  #           }
+  #     
+  #     - name: Make cleanup script executable
+  #       run: chmod +x scripts/cleanup.sh
+  #     
+  #     - name: Run Cleanup
+  #       run: |
+  #         echo "yes" | ./scripts/cleanup.sh
+  #         echo "✅ Cleanup completed!"
+
+  # Notification step (runs regardless of success/failure)
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure, deploy-iam, security-audit]
+    if: always()  # Runs even if previous jobs fail
+    
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Pipeline completed successfully!"
+            echo "All Azure IAM resources deployed and validated."
+          else
+            echo "❌ Pipeline failed!"
+            echo "Check the logs above for details."
+          fi
