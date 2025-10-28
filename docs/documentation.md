@@ -454,16 +454,16 @@ WEB_SUBNET_PREFIX="10.0.1.0/24"
 DB_SUBNET_NAME="subnet-db"
 DB_SUBNET_PREFIX="10.0.2.0/24"
 
-Step 1: Created Resource Group**
+Step 1: Created Resource Group
 az group create --name $RESOURCE_GROUP --location $LOCATION --output table
 
-Step 2: Created Virtual Network**
+Step 2: Created Virtual Network
 az network vnet create --resource-group $RESOURCE_GROUP --name $VNET_NAME --address-prefix $VNET_ADDRESS --location $LOCATION --output table
 
-Step 3: Created Web Subnet**
+Step 3: Created Web Subnet
 az network vnet subnet create --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --address-prefix $WEB_SUBNET_PREFIX --output table
 
-Step 4: Created DB Subnet**
+Step 4: Created DB Subnet
 az network vnet subnet create --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME --name $DB_SUBNET_NAME --address-prefix $DB_SUBNET_PREFIX --output table
 
 echo "My Azure IAM project infrastructure created successfully!"
@@ -550,30 +550,30 @@ LOCATION="uksouth"
 SUBSCRIPTION_ID="175dd7dd-05c8-4a40-96f4-7cf5cc651f6a"
 DB_SUBNET_ID="/subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db"
 
-Step 1: Creating Azure AD Groups**
+Step 1: Creating Azure AD Groups
 echo "Creating Azure AD groups..."
 az ad group create --display-name "WebAdmins" --mail-nickname "WebAdmins"
 az ad group create --display-name "DBAdmins" --mail-nickname "DBAdmins"
 
-Step 2: Creating test users**
+Step 2: Creating test users
 echo "Creating test users..."
 az ad user create --display-name "Web User1" --user-principal-name webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "WebPassword123" --force-change-password-next-sign-in false
 
 az ad user create --display-name "DB User1" --user-principal-name dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "DBPassword123" --force-change-password-next-sign-in false
 
-Step 3: Retrieving IDs**
+Step 3: Retrieving IDs
 
 WEBADMINS_GROUP_ID=$(az ad group show --group WebAdmins --query id -o tsv)
 DBADMINS_GROUP_ID=$(az ad group show --group DBAdmins --query id -o tsv)
 WEB_USER_ID=$(az ad user show --id webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --query id -o tsv)
 DB_USER_ID=$(az ad user show --id dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --query id -o tsv)
 
-Step 4: Adding users to groups**
+Step 4: Adding users to groups
 echo "Adding users to groups..."
 az ad group member add --group WebAdmins --member-id $WEB_USER_ID
 az ad group member add --group DBAdmins --member-id $DB_USER_ID
 
-Step 5: Assigning role to DBAdmins**
+Step 5: Assigning role to DBAdmins
 echo "Assigning Reader role to DBAdmins group on DB Subnet..."
 az role assignment create --assignee $DBADMINS_GROUP_ID --role Reader --scope $DB_SUBNET_ID
 
@@ -621,7 +621,7 @@ That’s why no new messages or changes appeared,everything was already configur
 **Lesson Learnt**
 
 Automating IAM setup with a script is more reliable and repeatable than creating resources manually.
-If the setup ever needs to be recreated (after cleanup), running ./create_iam.sh will automatically restore all IAM configurations in minutes.
+If the setup ever needs to be recreated (after cleanup), running `./create_iam.sh` will automatically restore all IAM configurations in minutes.
 
 
 ---
@@ -849,8 +849,8 @@ To automate the entire deployment process using GitHub Actions, demonstrating De
 
 ### 8.1 What is CI/CD?
 
-**CI (Continuous Integration):** Automatically testing code changes  
-**CD (Continuous Deployment):** Automatically deploying validated code
+ CI (Continuous Integration): Automatically testing code changes  
+ CD (Continuous Deployment): Automatically deploying validated code
 
 In this project, the pipeline automatically runs deployment scripts whenever code is pushed to GitHub.
 
@@ -869,23 +869,23 @@ In this project, the pipeline automatically runs deployment scripts whenever cod
 
 ### 8.3 Pipeline Jobs Explained
 
-**Job 1: Deploy Infrastructure**
+Job 1: Deploy Infrastructure
 - Checks out code from GitHub
 - Logs into Azure using Service Principal
 - Runs `create_infra.sh`
 - Validates Resource Group, VNet, and Subnets
 
-**Job 2: Deploy IAM Configuration**
+Job 2: Deploy IAM Configuration
 - Waits for Job 1 to complete (dependency)
 - Runs `create_iam.sh`
 - Validates AD Groups, Users, and Role Assignments
 
-**Job 3: Security Audit**
+Job 3: Security Audit
 - Lists all role assignments
 - Checks for overly permissive roles
 - Ensures least privilege principle is followed
 
-**Job 4: Notification**
+Job 4: Notification
 - Runs regardless of success/failure
 - Reports final pipeline status
 
@@ -1122,26 +1122,27 @@ This project demonstrates practical DevOps skills applicable to real-world cloud
 ## 11.0 References and Resources
 Documentation Used
 
-Azure CLI Documentation
-Azure RBAC Overview
-Azure Virtual Network Documentation
-GitHub Actions Documentation
-Bash Scripting Guide
+- Azure CLI Documentation
+- Azure RBAC Overview
+- Azure Virtual Network Documentation
+- GitHub Actions Documentation
+- Bash Scripting Guide
 
-**Learning Resources**
+**Learning Resources**s
 
-Microsoft Learn: Azure Fundamentals
-Azure Security Best Practices
-Infrastructure as Code Principles
-DevSecOps Methodology
+Microsoft Learn:
+- Azure Fundamentals
+- Azure Security Best Practices
+- Infrastructure as Code Principles
+- DevSecOps Methodology
 
 ### Tools and Technologies
 
-Azure CLI: Version 2.40.0+
-Bash: GNU Bash 5.x
-Git: Version control
-GitHub Actions: CI/CD platform
-Visual Studio Code: Code editor
+- Azure CLI: Version 2.40.0+
+- Bash: GNU Bash 5.x
+- Git: Version control
+- GitHub Actions: CI/CD platform
+- Visual Studio Code: Code editor
 
 ```
 Appendix A: Complete File Structure
