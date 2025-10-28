@@ -7,10 +7,11 @@ This document explains all configurations, deployment steps, and automation proc
 Before starting, I prepared my local environment to support Azure automation.
 Tools and Setup:
 
-Operating System: Windows 10 (using Git Bash terminal)
-Azure CLI: Installed and configured
-Code Editor: Visual Studio Code
-Azure Account: Logged in successfully using az login
+- Operating System: Windows 10 (using Git Bash terminal)
+- Azure CLI: Installed and configured
+- Code Editor: Visual Studio Code
+- Azure Account: Logged in successfully using az login
+
 Verification Commands:
 az --version
 az login
@@ -26,35 +27,41 @@ Inside it, I created subfolders for scripts, documentation, screenshots, and the
 
 Commands Used:
 
-mkdir scripts docs docs/screenshots ci-cd
-touch README.md
-touch docs/documentation.md
-touch scripts/create_infra.sh
-touch scripts/create_iam.sh
-touch scripts/cleanup.sh
-touch ci-cd/pipeline.yaml
+- mkdir scripts docs docs/screenshots ci-cd
+- touch README.md
+- touch docs/documentation.md
+- touch scripts/create_infra.sh
+- touch scripts/create_iam.sh
+- touch scripts/cleanup.sh
+- touch ci-cd/pipeline.yaml
 
 ### 1.3 Project Structure Verification
 After creating all folders and files, I verified that the structure was correct using the ls -R command.
-1.4 Screenshot: Verified Folder Structure
+
+1.4 **Screenshot:**
+ Verified Folder Structure
 I took a screenshot to show the completed and verified folder structure.
    ![Project Structure Screenshot](screenshots/project-structure.png)
    *This screenshot confirms that all required folders and files were successfully created and properly organized.*
 
 ### 1.5 Challenges Faced and Solutions
 
-Challenge:
+**Challenge:**
 
 At first, after running az login, the terminal didn't display my subscription info. I wasn't sure if the login was successful.
 
 How I Resolved It:
+
 I ran az account show to confirm my active subscription and ensure I was logged into the correct Azure tenant.
 
 Challenge:
+
 I had to make sure I understood the purpose of each file like create_infra.sh, cleanup.sh, and pipeline.yaml.
 
 How I Resolved It:
+
 I reviewed the project objectives and matched each script name to its purpose before moving forward to avoid confusion later.
+
 
 ### 1.6 Lessons Learnt (Setup Phase)
 
@@ -65,17 +72,19 @@ Organizing screenshots and documentation early makes presentation easier.
 
 # 2.0 Resource Group Creation
 
-Objective:
+**Objective:**
 
 To create a Resource Group that will contain all the Azure resources for my IAM Automation project.
 The Resource Group helps organize and manage related resources as a single unit in Azure.
 
 Commands I Used:
 1. To create the Resource Group:
-az group create --name iam-automation --location uksouth --output table
+
+`az group create --name iam-automation --location uksouth --output table`
 
 2. **To verify creation, I used:**
-  az group show --name iam-automation --output table
+
+  `az group show --name iam-automation --output table`
 
 
 ---
@@ -96,22 +105,26 @@ Challenge:
 Encountered MFA login error when using az login.
 
 Solution Implemented:
+
 I solved this using az login --use-device-code for interactive login through my browser.
 
 Lesson Learned:
+
 It's best to always verify your Azure login and default subscription before creating resources.
 
 Result:
+
 The Resource Group iam-automation was successfully created in the uksouth region and will be used to deploy all future resources.
 
 # 2.1 Virtual Network Creation
 
-Objective
+**Objective**
 
 To create a Virtual Network (VNet) that provides a secure, isolated environment where different resources such as subnets and databases can communicate securely.
 
 Command Used for VNet Creation:
-az network vnet create --resource-group iam-automation --name vnet-iam-automation --address-prefix 10.0.0.0/16 --location uksouth --output table
+
+`az network vnet create --resource-group iam-automation --name vnet-iam-automation --address-prefix 10.0.0.0/16 --location uksouth --output table`
 
 ### Explanation
 The Virtual Network (VNet) I just created acts as the foundation for all my networking resources.
@@ -126,7 +139,7 @@ This setup ensures that the environment remains isolated and manageable as more 
 ![Virtual Network Overview](screenshots/vnet-portal-view.png)
        *My Azure Portal view showing the vnet-iam-automation Virtual Network inside the iam-automation resource group.*
 
-### **Challenges I Faced and Solutions I Implemented**
+## **Challenges I Faced and Solutions I Implemented**
 
 **Challenge**
 
@@ -136,28 +149,31 @@ az network vnet show --resource group iam-automation --name vnet-iam-automation 
 This produced the error:
 unrecognized arguments: iam-automation
 
-## **Solution I Implemented**
+### **Solution I Implemented**
 The issue occurred because I mistakenly typed --resource group instead of the correct parameter --resource-group (with a hyphen).
 After correcting the syntax, the command executed successfully:
-az network vnet show --resource-group iam-automation --name vnet-iam-automation --output table
+
+`az network vnet show --resource-group iam-automation --name vnet-iam-automation --output table`
 
 
 ### **Verification:**
 
 The VNet creation was verified using the command:
-az network vnet show  --resource-group iam-automation --name vnet-iam-automation --output table
+
+`az network vnet show  --resource-group iam-automation --name vnet-iam-automation --output table`
 
 **Output I confirmed after running the command:**
 
-Location: uksouth
+- Location: uksouth
 
-Provisioning State: Succeeded
+- Provisioning State: Succeeded
 
-Address Space: 10.0.0.0/16 
+- Address Space: 10.0.0.0/16 
 
 ## **Creating my Web Subnet**
 **Command Used:**
- az network vnet subnet create --resource-group iam-automation --vnet-name vnet-iam-automation --name subnet-web  --address-prefix 10.0.1.0/24  --output table
+
+ `az network vnet subnet create --resource-group iam-automation --vnet-name vnet-iam-automation --name subnet-web  --address-prefix 10.0.1.0/24  --output table`
 
 ### **Explanation:**
 
@@ -181,19 +197,20 @@ From this step, I learned how IP address planning works in Azure.
 I now understand the difference between a VNet prefix and a subnet prefix, and how to calculate smaller subnets from a larger address range.
 
 
-# 2.2 **Creating My Database Subnet**
+## 2.2 **Creating My Database Subnet**
 To build on the existing network structure, I created another subnet that will be used for database resources.
 
 **The Command I Used:**
-az network vnet subnet create  --resource-group iam-automation --vnet-name vnet-iam-automation  --name subnet-db --address-prefix 10.0.2.0/24  --output table
 
-### Screenshots:
+`az network vnet subnet create  --resource-group iam-automation --vnet-name vnet-iam-automation  --name subnet-db --address-prefix 10.0.2.0/24  --output table`
+
+#### Screenshots:
 
 CLI Output of Subnet Creation;
 ![CLI Output showing subnet-db creation](../docs/screenshots/subnet-db-cli.png)
 *This shows the successful creation message from the Azure CLI.*
 
-Subnet in Azure Portal;
+Subnet Creation view in Azure Portal;
 ![Subnet-db visible in Azure Portal](../docs/screenshots/subnet-db-portal.png)
 *This shows both subnet-web and subnet-db visible under the VNet vnet-iam-automation in the Azure Portal.*
 
@@ -239,11 +256,14 @@ In this step, I created two Azure Active Directory (AD) security groups — WebA
 These groups will later be used to assign specific permissions (via Role-Based Access Control - RBAC) to manage the web and database subnets securely.
 
 Commands I Used
+
 To Create WebAdmins Group:
-az ad group create --display-name "WebAdmins" --mail-nickname "WebAdmins" --output table
+
+`az ad group create --display-name "WebAdmins" --mail-nickname "WebAdmins" --output table`
 
 To Create DBAdmins Group:
-az ad group create --display-name "DBAdmins" --mail-nickname "DBAdmins" --output table
+
+`az ad group create --display-name "DBAdmins" --mail-nickname "DBAdmins" --output table`
 
 #### Explanation
 Azure Active Directory (AD) groups are used to organize users and assign permissions collectively instead of individually.
@@ -257,8 +277,8 @@ DBAdmins will manage resources in the Database Subnet.
 **Challenge:**
 At first, I got an authentication error because my Azure CLI session wasn't authorized to manage AD resources.
 
-Solution:
-I re-authenticated using az login and confirmed I had the right permissions to create groups under my tenant. After that, both groups were successfully created.
+**Solution:**
+I re-authenticated using `az login` and confirmed I had the right permissions to create groups under my tenant. After that, both groups were successfully created.
 
 #### **Screenshots**
 ![CLI output confirming successful creation of the WebAdmins AD group.](../docs/screenshots/webadmins-group-created.png)
@@ -271,7 +291,7 @@ I re-authenticated using az login and confirmed I had the right permissions to c
          *Azure Portal view showing both WebAdmins and DBAdmins groups listed under Microsoft Entra ID.*
 
 At this stage, the two administrative groups are ready.
-They will later be linked to specific IAM roles and subnets to enforce controlled access — ensuring that only authorized users manage resources in their designated zones (Web or DB).
+They will later be linked to specific IAM roles and subnets to enforce controlled access, ensuring that only authorized users manage resources in their designated zones (Web or DB).
 
 ----
 # 3: Assign Reader Role to DBAdmins for DB Subnet Resources
@@ -285,25 +305,28 @@ This ensures that database administrators can view, but not modify, subnet confi
 To grant the DBAdmins Azure Active Directory (AAD) group Reader access to the subnet-db resource within the vnet-iam-automation virtual network.
 This ensures that database administrators can view, but not modify, subnet configurations and related resources.
 
-## 3.1 Identify the Subnet Resource ID
+### 3.1 Identify the Subnet Resource ID
 Every Azure resource has a unique Resource ID, which is required when assigning roles at a specific scope.
 The subnet's Resource ID was retrieved using the following Azure CLI command:
- az network vnet subnet show --resource-group iam-automation --vnet-name vnet-iam-automation --name subnet-db --query id --output tsv
+
+ `az network vnet subnet show --resource-group iam-automation --vnet-name vnet-iam-automation --name subnet-db --query id --output tsv`
 
 **Output:**
- /subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db
+
+ `/subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db`
 
 **Screenshot:**
 ![The resulting Resource ID output](screenshots/subnet-db-id.png)
              *The resulting Resource ID output*
 
-### **3.2 Identify the DBAdmins Group Object ID**
+#### **3.2 Identify the DBAdmins Group Object ID**
 
 Azure uses Object IDs to identify AAD entities like users, groups, and service principals.
 To assign a role to a group, its Object ID must be retrieved.
 
 **Command I Used:**
-az ad group show --group DBAdmins --query id --output tsv
+
+`az ad group show --group DBAdmins --query id --output tsv`
 
 **Output Screenshot:**
 ![DBAdmins group Object ID from Azure CLI](../docs/screenshots/dbadmins-object-id.png)
@@ -314,7 +337,8 @@ az ad group show --group DBAdmins --query id --output tsv
 Now that both IDs are known, the Reader role can now be assigned to the DBAdmins group at the subnet level.
 
 Command (written on one line for PowerShell):
-az role assignment create --assignee-object-id e114f7c5-b673-47b6-8389-425469606434 --role "Reader" --scope /subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db --assignee-principal-type Group --output table
+
+`az role assignment create --assignee-object-id e114f7c5-b673-47b6-8389-425469606434 --role "Reader" --scope /subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db --assignee-principal-type Group --output table`
 
 **Successful Output:**
 ![CLI showing successful assignment output](../docs/screenshots/role-assignment-reader.png)
@@ -323,7 +347,8 @@ az role assignment create --assignee-object-id e114f7c5-b673-47b6-8389-425469606
 ### **3.4 Verification**
 
 To confirm that the Reader role was successfully assigned to the DBAdmins group for the subnet-db resource:
- az role assignment list --assignee e114f7c5-b673-47b6-8389-425469606434 --scope "/subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db" --output table
+
+ `az role assignment list --assignee e114f7c5-b673-47b6-8389-425469606434 --scope "/subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db" --output table`
 
 **Output:**
 ![Reader role assignment to DBAdmins](../docs/screenshots/verify-role-assignment.png)
@@ -344,14 +369,16 @@ To create test users in Azure Active Directory, assign them to the appropriate g
 
 ### 4.1 Creating Test Users
 **Command I Used:**
- az ad user create --display-name "Web User1" --user-principal-name webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "WebPassword123" --force-change-password-next-sign-in false
+
+ `az ad user create --display-name "Web User1" --user-principal-name webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "WebPassword123" --force-change-password-next-sign-in false`
 
 **Output Screenshot:**
 ![the JSON output of the Web User1 creation](../docs/screenshots/web-user1-created.png)
  The JSON output of the Web User1 created.
 
  **Command:**
- az ad user create --display-name "DB User1" --user-principal-name dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "DBPassword123" --force-change-password-next-sign-in false
+
+ `az ad user create --display-name "DB User1" --user-principal-name dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "DBPassword123" --force-change-password-next-sign-in false`
 
 **Output Screenshot:**
 ![the JSON output of the DB User1 creation](../docs/screenshots/db-user1-created.png)
@@ -359,6 +386,7 @@ To create test users in Azure Active Directory, assign them to the appropriate g
 
 ### **4.2 Adding Users to Their Groups**
  **Adding Web User1 to WebAdmins:**
+
 To assign the newly created Web User1 account to the WebAdmins group for role-based access control.
 
 **Command**
@@ -372,10 +400,12 @@ az ad group member add --group WebAdmins --member-id c3efb785-ea09-40d6-9d01-4e1
       *Portal output showing Web User1 listed under the WebAdmins group members.*
 
 **Adding DB User1 to DBAdmins Group:**
+
 To assign the newly created DB User1 account to the WebAdmins group for role-based access control.
 
 **Command:**
-az ad group member add --group DBAdmins --member-id 67d2dbd7-4dc0-4004-a6fe-adc1150c8107
+
+`az ad group member add --group DBAdmins --member-id 67d2dbd7-4dc0-4004-a6fe-adc1150c8107`
 
 **Output Screenshots:**
 ![output showing DB User1 listed in the group](../docs/screenshots/dbadmins-membership-cli.png)
@@ -386,9 +416,11 @@ az ad group member add --group DBAdmins --member-id 67d2dbd7-4dc0-4004-a6fe-adc1
 
 **Challenges I Faced and How I Solved Them:**
 Challenge:
+
 While adding the user to the Azure AD group, it was initially unclear to me whether the --member-id parameter required the Object ID or the User Principal Name (UPN). Using the wrong one caused an error during testing.
 
 **Solution:**
+
 I resolved the issue by confirming that Azure CLI requires the Object ID of the user (retrieved using az ad user show --id <UPN> --query id --output tsv). Once the correct ID was used, my user was successfully added to the group.
 
 
@@ -420,16 +452,16 @@ WEB_SUBNET_PREFIX="10.0.1.0/24"
 DB_SUBNET_NAME="subnet-db"
 DB_SUBNET_PREFIX="10.0.2.0/24"
 
- **Step 1: Created Resource Group**
+Step 1: Created Resource Group**
 az group create --name $RESOURCE_GROUP --location $LOCATION --output table
 
- **Step 2: Created Virtual Network**
+Step 2: Created Virtual Network**
 az network vnet create --resource-group $RESOURCE_GROUP --name $VNET_NAME --address-prefix $VNET_ADDRESS --location $LOCATION --output table
 
-**Step 3: Created Web Subnet**
+Step 3: Created Web Subnet**
 az network vnet subnet create --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --address-prefix $WEB_SUBNET_PREFIX --output table
 
-**Step 4: Created DB Subnet**
+Step 4: Created DB Subnet**
 az network vnet subnet create --resource-group $RESOURCE_GROUP --vnet-name $VNET_NAME --name $DB_SUBNET_NAME --address-prefix $DB_SUBNET_PREFIX --output table
 
 echo "My Azure IAM project infrastructure created successfully!"
@@ -438,26 +470,27 @@ echo "My Azure IAM project infrastructure created successfully!"
 ### 5.2 **Giving the Script Permission to Run**
 
 Before executing the script, I made it executable by running:
-  chmod +x scripts/create_infra.sh
+
+  `chmod +x scripts/create_infra.sh`
 
   This command gives the script the necessary permission to be executed from the terminal.
 
 #### 5.3 **Executing the Script**
 
 To run the automation and create the infrastructure, I used:
-  ./scripts/create_infra.sh
+  `./scripts/create_infra.sh`
 
 5.4 **CLI Output:**
 
 When executed, the script automatically confirmed the existence of:
 
-Resource Group (iam-automation)
+- Resource Group (iam-automation)
 
-Virtual Network (vnet-iam-automation)
+- Virtual Network (vnet-iam-automation)
 
-Web Subnet (subnet-web)
+- Web Subnet (subnet-web)
 
-Database Subnet (subnet-db)
+- Database Subnet (subnet-db)
 
 Because these resources had already been created manually during earlier steps, Azure CLI simply confirmed their existence , no duplication occurred.
 This behavior shows the idempotent nature of Azure CLI (it safely reuses existing resources).
@@ -466,13 +499,13 @@ This behavior shows the idempotent nature of Azure CLI (it safely reuses existin
 
 ### 5.5 **Why This Step Is Important.**
 
-It replaces manual effort with automation.
+- It replaces manual effort with automation.
 
-Ensures the environment can be recreated easily on another Azure tenant or region.
+- Ensures the environment can be recreated easily on another Azure tenant or region.
 
-Reduces human error and promotes consistency.
+- Reduces human error and promotes consistency.
 
-Demonstrates DevOps principles such as Infrastructure as Code (IaC).
+- Demonstrates DevOps principles such as Infrastructure as Code (IaC).
 
 5.6 **Challenge I Faced**
 
@@ -495,13 +528,13 @@ To automate the creation and configuration of Azure Active Directory (AD) users,
 
 This script automates:
 
--Creating Azure AD security groups (WebAdmins, DBAdmins).
+- Creating Azure AD security groups (WebAdmins, DBAdmins).
 
--Creating test users (webuser1, dbuser1).
+- Creating test users (webuser1, dbuser1).
 
--Adding users to their corresponding groups.
+- Adding users to their corresponding groups.
 
--Assigning the Reader role to DBAdmins on the DB subnet.
+- Assigning the Reader role to DBAdmins on the DB subnet.
 
 **Script Content Overview**
 ```bash
@@ -515,30 +548,30 @@ LOCATION="uksouth"
 SUBSCRIPTION_ID="175dd7dd-05c8-4a40-96f4-7cf5cc651f6a"
 DB_SUBNET_ID="/subscriptions/175dd7dd-05c8-4a40-96f4-7cf5cc651f6a/resourceGroups/iam-automation/providers/Microsoft.Network/virtualNetworks/vnet-iam-automation/subnets/subnet-db"
 
-**Step 1: Creating Azure AD Groups**
+Step 1: Creating Azure AD Groups**
 echo "Creating Azure AD groups..."
 az ad group create --display-name "WebAdmins" --mail-nickname "WebAdmins"
 az ad group create --display-name "DBAdmins" --mail-nickname "DBAdmins"
 
-**Step 2: Creating test users**
+Step 2: Creating test users**
 echo "Creating test users..."
 az ad user create --display-name "Web User1" --user-principal-name webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "WebPassword123" --force-change-password-next-sign-in false
 
 az ad user create --display-name "DB User1" --user-principal-name dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --password "DBPassword123" --force-change-password-next-sign-in false
 
-**Step 3: Retrieving IDs**
+Step 3: Retrieving IDs**
 
 WEBADMINS_GROUP_ID=$(az ad group show --group WebAdmins --query id -o tsv)
 DBADMINS_GROUP_ID=$(az ad group show --group DBAdmins --query id -o tsv)
 WEB_USER_ID=$(az ad user show --id webuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --query id -o tsv)
 DB_USER_ID=$(az ad user show --id dbuser1@ifeanyiogbonnaya33gmail.onmicrosoft.com --query id -o tsv)
 
-**Step 4: Adding users to groups**
+Step 4: Adding users to groups**
 echo "Adding users to groups..."
 az ad group member add --group WebAdmins --member-id $WEB_USER_ID
 az ad group member add --group DBAdmins --member-id $DB_USER_ID
 
-**Step 5: Assigning role to DBAdmins**
+Step 5: Assigning role to DBAdmins**
 echo "Assigning Reader role to DBAdmins group on DB Subnet..."
 az role assignment create --assignee $DBADMINS_GROUP_ID --role Reader --scope $DB_SUBNET_ID
 
@@ -547,10 +580,11 @@ echo "✅ IAM configuration complete!"
 
 After completing the script, I executed it using the command below:
 
- chmod +x create_iam.sh
+ `chmod +x create_iam.sh`
 
 I then ran :
- ./create_iam.sh
+
+ `./create_iam.sh`
 
  **Output Screenshot:**
 ![CLI output showing create-iam](../docs/screenshots/create-iam-cli.png)
@@ -558,7 +592,8 @@ I then ran :
 ### **Investigation**
 
 To confirm, I manually checked my Azure Active Directory using:
- az ad group list --output table
+
+ `az ad group list --output table`
 
 and verified that the groups WebAdmins and DBAdmins already existed.
 
@@ -569,11 +604,11 @@ I also verified that both test users (webuser1 and dbuser1) were already present
 The reason the script didn’t produce new output is that Azure CLI does not recreate resources that already exist.
 Since I had already created:
 
--The WebAdmins and DBAdmins groups
+- The WebAdmins and DBAdmins groups
 
--The Web User1 and DB User1 users
+- The Web User1 and DB User1 users
 
--The role assignment for DBAdmins on the DB subnet
+- The role assignment for DBAdmins on the DB subnet
 
 …the script detected these existing resources and skipped creating duplicates.
 
@@ -776,7 +811,7 @@ Verified that the resource group iam-automation no longer appeared in the portal
 
 ![resource portal verification ](../docs/screenshots/portal_cleanup_resource_group_deleted.png)
 
-Virtual Network Deleted
+Virtual Network Deleted:
 Confirmed that vnet-iam-automation and its subnets were removed.
 
 📸 Screenshot:
@@ -819,15 +854,15 @@ In this project, the pipeline automatically runs deployment scripts whenever cod
 
 ### 8.2 Pipeline Architecture
 ```
-Code Push to GitHub
+ Code Push to GitHub
     ↓
-Job 1: Deploy Infrastructure
+- Job 1: Deploy Infrastructure
     ↓
-Job 2: Deploy IAM Configuration
+- Job 2: Deploy IAM Configuration
     ↓
-Job 3: Security Audit
+- Job 3: Security Audit
     ↓
-Job 4: Notification
+- Job 4: Notification
 ```
 
 ### 8.3 Pipeline Jobs Explained
@@ -881,7 +916,9 @@ az ad sp create-for-rbac --name "github-actions-iam" --role contributor --scopes
 ```
 
 **Step 2: Add GitHub Secrets**
-Go to: GitHub Repository → Settings → Secrets and variables → Actions
+Go to: 
+
+GitHub Repository → Settings → Secrets and variables → Actions
 
 Add these secrets:
 - `AZURE_CLIENT_ID`
@@ -1058,13 +1095,14 @@ If I were to extend this project, I would:
 This project successfully demonstrates the automation of Identity and Access Management in Microsoft Azure using modern DevSecOps practices.
 Key Achievements:
 
-✅ Complete infrastructure automation using Azure CLI
-✅ Secure IAM implementation following best practices
-✅ Resource lifecycle management with cleanup automation
-✅ CI/CD pipeline for continuous deployment
-✅ Comprehensive documentation with visual proof
+- ✅ Complete infrastructure automation using Azure CLI
+- ✅ Secure IAM implementation following best practices
+- ✅ Resource lifecycle management with cleanup automation
+- ✅ CI/CD pipeline for continuous deployment
+- ✅ Comprehensive documentation with visual proof
 
 Technical Skills Applied:
+
 Through this project, practical experience was gained with:
 
 Cloud infrastructure automation
@@ -1073,8 +1111,10 @@ Bash scripting and error handling
 CI/CD pipeline development
 Security-first thinking in cloud environments
 
-Impact:
+**Impact:**
+
 This project demonstrates practical DevOps skills applicable to real-world cloud engineering roles, where repeatability, security, and efficiency are critical. The combination of Infrastructure as Code, automated security controls, and CI/CD pipelines represents modern cloud engineering practices.
+
 ---
 
 ## 11.0 References and Resources
@@ -1101,6 +1141,7 @@ Git: Version control
 GitHub Actions: CI/CD platform
 Visual Studio Code: Code editor
 
+```
 Appendix A: Complete File Structure
 azure-iam-automation/
 │
@@ -1137,7 +1178,7 @@ azure-iam-automation/
     └── workflows/                      # CI/CD pipeline definitions
         └── pipeline.yaml               # GitHub Actions workflow
 
----
+```
 
 ```
 
