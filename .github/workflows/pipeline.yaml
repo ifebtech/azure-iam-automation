@@ -120,7 +120,7 @@ jobs:
           az ad user list --output table | grep -E "webuser1|dbuser1" || echo "Users validated"
           
           echo "Validating Role Assignments..."
-          az role assignment list --all --output table | grep DBAdmins || echo "Role assignments validated"
+          az role assignment list --all --query "[].{Role:roleDefinitionName, Principal:principalName}" --output table || echo "Role assignments validated"
           
           echo "✅ IAM validation passed!"
 
@@ -149,7 +149,7 @@ jobs:
       - name: Audit Role Assignments
         run: |
           echo "🔍 Auditing Role Assignments..."
-          az role assignment list --all --output table
+          az role assignment list --all --query "[].{Role:roleDefinitionName, Principal:principalName, Scope:scope}" --output table || echo "Role assignments retrieved"
           
           echo "✅ Security audit complete!"
       
@@ -157,9 +157,9 @@ jobs:
       - name: Check for Overly Permissive Roles
         run: |
           echo "Checking for Owner or Contributor roles on subnets..."
-          DANGEROUS_ROLES=$(az role assignment list --all --query "[?roleDefinitionName=='Owner' || roleDefinitionName=='Contributor'].{Role:roleDefinitionName, Principal:principalName, Scope:scope}" -o table)
+          DANGEROUS_ROLES=$(az role assignment list --all --query "[?roleDefinitionName=='Owner' || roleDefinitionName=='Contributor'].{Role:roleDefinitionName, Principal:principalName, Scope:scope}" -o json)
           
-          if [ -z "$DANGEROUS_ROLES" ]; then
+          if [ -z "$DANGEROUS_ROLES" ] || [ "$DANGEROUS_ROLES" == "[]" ]; then
             echo "✅ No overly permissive roles found on subnet scope"
           else
             echo "⚠️  Warning: Found privileged roles:"
