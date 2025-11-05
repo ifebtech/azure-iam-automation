@@ -971,13 +971,13 @@ Click Add
 
 IMMEDIATELY copy the VALUE (not the Secret ID) - you can only see it once!
 
-AZURE_CLIENT_ID = 0fd9728b-ad75-47f6-94fe-74680be8d9f8
+AZURE_CLIENT_ID =  [Service Principal Secret - KEEP THIS SECURE]
 
-AZURE_CLIENT_SECRET = fVs8Q~eoDMhE.nZ8SQPJ54ssFG0reEtgD9IzhaBs
+AZURE_CLIENT_SECRET = [SERVICE_PRINCIPAL_SECRET_REDACTED]
 
-AZURE_SUBSCRIPTION_ID = 175dd7dd-05c8-4a40-96f4-7cf5cc651f6a
+AZURE_SUBSCRIPTION_ID =  [Service Principal Secret - KEEP THIS SECURE]
 
-AZURE_TENANT_ID = dcabc9b5-4db8-4926-990e-ecaf23744a26
+AZURE_TENANT_ID =  [Service Principal Secret - KEEP THIS SECURE]
 
 ![Client secret created for GitHub Actions](../docs/screenshots/08_02_client_secret_created.png)
 *Client secret created for GitHub Actions authentication (actual value blurred for security)*
@@ -986,7 +986,7 @@ Step 3: Assign Contributor Role to Service Principal
 
 Search for Subscriptions  
 
-Click your subscription: 175dd7dd-05c8-4a40-96f4-7cf5cc651f6a
+Click your subscription:  [Service Principal Secret - KEEP THIS SECURE]
 
 Click Access control (IAM) (left sidebar)
 
