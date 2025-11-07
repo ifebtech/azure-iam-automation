@@ -166,7 +166,7 @@ jobs:
             echo "$DANGEROUS_ROLES"
           fi
 
-  # Notification step (runs regardless of success/failure)
+  # Job:4 Notification step (runs regardless of success/failure)
   notify:
     name: Send Notification
     runs-on: ubuntu-latest
